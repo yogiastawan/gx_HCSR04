@@ -16,7 +16,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+    - name: Add Target
+      run: rustup target add thumbv7m-none-eabi
     - name: Build
       run: cargo build --target=thumbv7m-none-eabi --verbose
-    - name: Run examples
+    - name: Build examples
       run: cargo build --examples --verbose
