@@ -1,0 +1,31 @@
+[package]
+name = "gihex-hc-sr04"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[profile.release]
+opt-level = 'z' # turn on maximum optimizations.
+lto = true      # Link-time-optimizations for further size reduction
+
+[dependencies]
+embedded-hal = { version = "^0.2.7", features = ["unproven"] }
+num-traits = { version = "^0.2.15", default-features = false }
+
+[dev-dependencies]
+cortex-m = { version = "^0.7.7", features = ["critical-section-single-core"] }
+cortex-m-rt = "^0.7.3"
+stm32f1xx-hal = { features = [
+    "stm32f103",
+    "rt",
+    "medium",
+], version = "^0.10.0" }
+# panic-halt = "^0.2.0"
+cortex-m-semihosting = "0.5.0"
+panic-semihosting = "0.6.0"
+fugit = "0.3.7"
+rtic = { version = "2.0.1", features = ["thumbv7-backend"] }
+
+[[example]]
+name = "use_rtic"
