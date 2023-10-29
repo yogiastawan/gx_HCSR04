@@ -24,8 +24,6 @@ impl<TIM: Instance> TickerUs for MyCounter<TIM> {
     }
 }
 
-// unsafe impl<TIM> Send for MyCounter<TIM> where TIM: Send {}
-
 #[rtic::app(device=stm32f1xx_hal::pac)]
 mod app {
 
@@ -86,12 +84,14 @@ mod app {
     #[idle(shared=[hcsr04])]
     fn idle(ctx: idle::Context) -> ! {
         let mut sensor = ctx.shared.hcsr04;
-        sensor.lock(
-            |x| match x.get_distance::<f32>(gihex_hc_sr04::DistanceUnit::MilliMeter) {
+        sensor.lock(|x| {
+            match x.get_distance::<f32>(gihex_hc_sr04::DistanceUnit::MilliMeter) {
                 Ok(value) => hprint!("Distance: {}", value),
                 Err(_x) => hprint!("still waiting for sound return"),
-            },
-        );
+            };
+            let time = x.get_last_length_echo_time::<u32>(gihex_hc_sr04::TimeUnit::MicroSecond);
+            hprint!("last echo duration: {}", time);
+        });
 
         loop {
             wfi();

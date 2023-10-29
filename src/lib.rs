@@ -1,17 +1,15 @@
 #![no_std]
 
 pub mod us_timer;
-pub mod us_traits;
 
 use core::marker::PhantomData;
 
 use embedded_hal::{blocking, digital::v2};
 use num_traits::{float::FloatCore, NumCast};
 
-const ULTRASONIC_SPEED_HALF: f32 = 171_605.0; //mm/s
+const ULTRASONIC_SPEED_HALF: f32 = 171_605.0; //mm per second
 
 const TRIGGER_TIME_IN_US: u8 = 10;
-// const TRIGGER_WAIT_IN_US: u8 = 10;
 
 pub enum HsError {
     OnWaitingEcho,
@@ -112,14 +110,17 @@ where
         }
     }
 
-    pub fn get_last_length_echo_time<T>(&mut self, unit: TimeUnit) -> u32 {
+    pub fn get_last_length_echo_time<T>(&mut self, unit: TimeUnit) -> T
+    where
+        T: NumCast,
+    {
         let divider: u32 = match unit {
-            TimeUnit::MicroSecond => return self.last_length_time,
+            TimeUnit::MicroSecond => return NumCast::from(self.last_length_time).unwrap(),
             TimeUnit::MilliSecond => 1000,
             TimeUnit::Second => 1_000_000,
         };
 
-        self.last_length_time / divider
+        NumCast::from(self.last_length_time / divider).unwrap()
     }
 
     pub fn send_ping_force(&mut self) {
