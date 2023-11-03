@@ -1,5 +1,51 @@
+//! # Introduction
+//! This is the library used to access the HC-SR04 sensor.
+//! This library inspired by [`hc-sr04`](https://github.com/nordmoen/hc-sr04/tree/master). 
+//!For more detail how to use this library see [`Example`](https://github.com/yogiastawan/gx_HCSR04/blob/v0.1.0/examples/use_rtic.rs)
+//!
+//! ## How to use?
+//! To use this library, there are several things that must be done, such as:
+//! - Implementing external interrupt (`EXTI`) with `RAISING` and `FAILING` trigger to the pin `echo` (pin microcontroller that connected to the pin `echo` HC-SR04 sensor).
+//! ```rust
+//! let mut echo_pin = gpioa.pa3.into_pull_down_input(&mut gpioa.crl);
+//! echo_pin.make_interrupt_source(&mut afio);
+//! let mut exti = ctx.device.EXTI;
+//! echo_pin.enable_interrupt(&mut exti);
+//! echo_pin.trigger_on_edge(&mut exti, Edge::RisingFalling);
+//! ```
+//! - Create an object that impelements trait [`us_timer::TickerUs`]. This object is used to count the number of ticks.
+//! ```rust
+//! use stm32f1xx_hal::timer::{CounterUs, Instance};
+//! pub struct MyCounter<TIM> {
+//!     counter: CounterUs<TIM>,
+//! }
+//!
+//! impl<TIM: Instance> MyCounter<TIM> {
+//!     fn new(counter: CounterUs<TIM>) -> Self {
+//!         Self { counter }
+//!     }
+//! }
+//!
+//! impl<TIM: Instance> TickerUs for MyCounter<TIM> {
+//!     fn get_tick(&self) -> u32 {
+//!         self.counter.now().ticks()
+//!     }
+//!
+//!     fn get_frequency(&self) -> u32 {
+//!         1_000_000
+//!     }
+//! }
+//! ```
+//!
+//! - Create HC-SR04 object and use it.
+//! ```rust
+//! let hcsr04 = HcSR04::hc_sr04_new(trig_pin, &mut delay, &mut my_counter);
+//! let distance=hcsr04.get_distance::<f32>(DistanceUnit::MilliMeter);
+//! ```
+
 #![no_std]
 
+/// This module containt traits that used to count number of ticks. 
 pub mod us_timer;
 
 use core::marker::PhantomData;
@@ -7,13 +53,18 @@ use core::marker::PhantomData;
 use embedded_hal::{blocking, digital::v2};
 use num_traits::{float::FloatCore, NumCast};
 
+
 const ULTRASONIC_SPEED_HALF: f32 = 171_605.0; //mm per second
 
 const TRIGGER_TIME_IN_US: u8 = 10;
 
+/// Error variant for HC-SR04
 pub enum HsError {
+    ///Error when HC-SR04 still waiting for soundwave back.
     OnWaitingEcho,
+    ///Error when HC-SR04 waiting soundwave back too long (more than 38 ms).
     PulseTimeOut,
+    ///Error when HC_SR04 on wrong state.
     WrongState,
 }
 
@@ -31,6 +82,8 @@ where
         (ticker.get_tick() - self.0) * 1_000_000 / ticker.get_frequency()
     }
 }
+
+///Struct HC-SR04 sensor object
 pub struct HcSR04</*IN,*/ OUT, DELAY, COUNTER> {
     // pin_echo: IN,
     pin_trigger: OUT,
@@ -40,15 +93,23 @@ pub struct HcSR04</*IN,*/ OUT, DELAY, COUNTER> {
     last_length_time: u32,
 }
 
+///Distance unit variants
 pub enum DistanceUnit {
+    ///To measure distance in millimeter.
     MilliMeter,
-    CentyMeter,
+    ///To measure distance in centimeter.
+    CentiMeter,
+    ///To measure distance in meter.
     Meter,
 }
 
+///Time unit variants
 pub enum TimeUnit {
+    ///To measure time in microsecond.
     MicroSecond,
+    ///To measure time in millisceond.
     MilliSecond,
+    ///To measure time in second.
     Second,
 }
 
@@ -66,6 +127,7 @@ where
     DELAY: blocking::delay::DelayUs<u8>,
     COUNTER: us_timer::TickerUs,
 {
+    ///Create new `Hc-SR04` object.
     pub fn hc_sr04_new(
         // pin_echo: IN,
         pin_trigger: OUT,
@@ -86,6 +148,7 @@ where
     //     &self.pin_echo
     // }
 
+    ///Measure distance. where T is `f32` or `f64`.
     pub fn get_distance<T>(&mut self, unit: DistanceUnit) -> Result<T, HsError>
     where
         T: FloatCore,
@@ -101,7 +164,7 @@ where
             State::Measure(distance) => {
                 let divider: u8 = match unit {
                     DistanceUnit::MilliMeter => 1,
-                    DistanceUnit::CentyMeter => 10,
+                    DistanceUnit::CentiMeter => 10,
                     DistanceUnit::Meter => 100,
                 };
                 self.state = State::Idle;
@@ -110,6 +173,7 @@ where
         }
     }
 
+    ///Get last lenght of time soundwave detected back by sensor. Where T is number variants.
     pub fn get_last_length_echo_time<T>(&mut self, unit: TimeUnit) -> T
     where
         T: NumCast,
@@ -123,6 +187,7 @@ where
         NumCast::from(self.last_length_time / divider).unwrap()
     }
 
+    ///Send ulrasonic sundwave.
     pub fn send_ping_force(&mut self) {
         //make sure first pin trigger set to LOW
         let _ = self.pin_trigger.set_low();
@@ -133,6 +198,7 @@ where
         let _ = self.pin_trigger.set_low();
     }
 
+    ///Update state of `HC-SR04` sensor. This function must called inside external interrupt (`EXTI`) callback.
     pub fn on_echo_pulse(&mut self) -> Result<(), HsError> {
         self.state = match self.state {
             State::Triggered => {
