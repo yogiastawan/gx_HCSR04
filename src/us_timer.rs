@@ -1,6 +1,3 @@
-//!#Introduction
-//! This module containt traits that used to count number of ticks.
-
 ///Trait that used to count number of ticks
 pub trait TickerUs {
     ///Get number of current ticks
