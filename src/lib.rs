@@ -1,6 +1,6 @@
 //! # Introduction
 //! This is the library used to access the HC-SR04 sensor.
-//! This library inspired by [`hc-sr04`](https://github.com/nordmoen/hc-sr04/tree/master). 
+//! This library inspired by [`hc-sr04`](https://github.com/nordmoen/hc-sr04/tree/master).
 //!For more detail how to use this library see [`Example`](https://github.com/yogiastawan/gx_HCSR04/blob/v0.1.0/examples/use_rtic.rs)
 //!
 //! ## How to use?
@@ -45,14 +45,13 @@
 
 #![no_std]
 
-/// This module containt traits that used to count number of ticks. 
+/// This module containt traits that used to count number of ticks.
 pub mod us_timer;
 
 use core::marker::PhantomData;
 
 use embedded_hal::{blocking, digital::v2};
 use num_traits::{float::FloatCore, NumCast};
-
 
 const ULTRASONIC_SPEED_HALF: f32 = 171_605.0; //mm per second
 
@@ -117,7 +116,7 @@ enum State<T> {
     Idle,
     Triggered,
     MeasurePulse(Elapsed<T>),
-    Measure(f32),
+    Measure(u32),
 }
 
 impl</*IN,*/ OUT, DELAY, COUNTER> HcSR04</*IN,*/ OUT, DELAY, COUNTER>
@@ -161,13 +160,17 @@ where
             }
             State::Triggered => Err(HsError::OnWaitingEcho),
             State::MeasurePulse(_) => Err(HsError::OnWaitingEcho),
-            State::Measure(distance) => {
+            State::Measure(time) => {
+                self.state = State::Idle;
+                if time > 38000 {
+                    return Err(HsError::PulseTimeOut);
+                }
                 let divider: u8 = match unit {
                     DistanceUnit::MilliMeter => 1,
                     DistanceUnit::CentiMeter => 10,
                     DistanceUnit::Meter => 100,
                 };
-                self.state = State::Idle;
+                let distance = ULTRASONIC_SPEED_HALF * time as f32 / 1_000_000.0;
                 Ok(NumCast::from(distance / (divider as f32)).unwrap())
             }
         }
@@ -207,15 +210,11 @@ where
             State::MeasurePulse(ref x) => {
                 let time = x.get_elapsed_time_us(unsafe { self.timer.as_ref().unwrap() });
                 self.last_length_time = time;
-                if time > 38000 {
-                    return Err(HsError::PulseTimeOut);
-                }
-                let distance = ULTRASONIC_SPEED_HALF * time as f32 / 1_000_000.0;
-
-                State::Measure(distance)
+                State::Measure(time)
             }
             _ => return Err(HsError::WrongState),
         };
+
         Ok(())
     }
 }
