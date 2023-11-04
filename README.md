@@ -2,7 +2,8 @@
 
 [![Continuous integration](https://github.com/yogiastawan/gx_HCSR04/actions/workflows/rust.yml/badge.svg)](https://github.com/yogiastawan/gx_HCSR04)
 [![GitHub](https://img.shields.io/github/license/yogiastawan/gx_HCSR04)](https://github.com/yogiastawan/gx_HCSR04/blob/master/LICENSE)
-[![GitHub release (with filter)](https://img.shields.io/github/v/release/yogiastawan/gx_HCSR04)](https://github.com/yogiastawan/gx_HCSR04/releases)
+[![Crates.io](https://img.shields.io/crates/v/gihex-hc-sr04?color=blue)](https://crates.io/crates/gihex-hc-sr04)
+[![Released API docs](https://docs.rs/gihex-hc-sr04/badge.svg)](https://docs.rs/gihex-hc-sr04/)
 [![GitHub issues](https://img.shields.io/github/issues/yogiastawan/gx_HCSR04)](https://github.com/yogiastawan/gx_HCSR04/issues)
 
 
