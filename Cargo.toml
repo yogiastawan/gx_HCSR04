@@ -1,6 +1,6 @@
 [package]
 name = "gihex-hc-sr04"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2021"
 authors = ["yogiastawan"]
 repository = "https://github.com/yogiastawan/gx_HCSR04"
