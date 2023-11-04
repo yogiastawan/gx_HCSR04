@@ -1,6 +1,6 @@
 [package]
 name = "gihex-hc-sr04"
-version = "0.1.3"
+version = "0.1.4"
 edition = "2021"
 authors = ["yogiastawan"]
 repository = "https://github.com/yogiastawan/gx_HCSR04"
@@ -40,3 +40,6 @@ humidity = ["temperature"]
 
 [[example]]
 name = "use_rtic"
+
+[package.metadata.docs.rs]
+features = ["temperature","humidity"]
