@@ -8,6 +8,7 @@ description = "Library to access HC-SR04 ultrasonic sensor"
 keywords = ["embedded-system","HC-SR04"]
 categories = ["embedded","no-std"]
 license = "MIT"
+readme = "README.md"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
