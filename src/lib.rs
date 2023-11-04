@@ -204,7 +204,7 @@ where
                 let distance = (331_300.0 + (0.606 * self.env_temp)) * time as f32 / 2_000_000.0;
                 #[cfg(any(feature = "temperature", feature = "humidity"))]
                 let distance =
-                    (331_300.0 + (0.606.0 * self.env_temp) + (0.0124 * self.env_hum as f32))
+                    (331_300.0 + (0.606 * self.env_temp) + (0.0124 * self.env_hum as f32))
                         * time as f32
                         / 2_000_000.0;
 
