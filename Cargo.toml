@@ -1,12 +1,12 @@
 [package]
 name = "gihex-hc-sr04"
-version = "0.1.4"
+version = "0.1.5"
 edition = "2021"
 authors = ["yogiastawan"]
 repository = "https://github.com/yogiastawan/gx_HCSR04"
 description = "Library to access HC-SR04 ultrasonic sensor"
-keywords = ["embedded-system","HC-SR04"]
-categories = ["embedded","no-std"]
+keywords = ["embedded-system", "HC-SR04"]
+categories = ["embedded", "no-std"]
 license = "MIT"
 readme = "README.md"
 
@@ -38,8 +38,21 @@ rtic = { version = "2.0.1", features = ["thumbv7-backend"] }
 temperature = []
 humidity = ["temperature"]
 
+[package.metadata.docs.rs]
+features = ["temperature", "humidity"]
+
 [[example]]
 name = "use_rtic"
+required-features = []
 
-[package.metadata.docs.rs]
-features = ["temperature","humidity"]
+[[example]]
+name = "basic"
+required-features = []
+
+[[example]]
+name = "with_temperature"
+required-features = ["temperature"]
+
+[[example]]
+name = "with_humidity"
+required-features = ["humidity"]
