@@ -59,8 +59,6 @@ use core::marker::PhantomData;
 use embedded_hal::{blocking, digital::v2};
 use num_traits::NumCast;
 
-const ULTRASONIC_SPEED_HALF: f32 = 171_605.0; //mm per second
-
 const TRIGGER_TIME_IN_US: u8 = 10;
 
 /// Error variant for HC-SR04
@@ -199,12 +197,12 @@ where
                     DistanceUnit::Meter => 100,
                 };
                 #[cfg(not(any(feature = "temperature", feature = "humidity")))]
-                let distance = ULTRASONIC_SPEED_HALF * time as f32 / 1_000_000.0;
+                let distance = 171_605.0 * time as f32 / 1_000_000.0;
                 #[cfg(feature = "temperature")]
                 let distance = (331_300.0 + (0.606 * self.env_temp)) * time as f32 / 2_000_000.0;
-                #[cfg(any(feature = "temperature", feature = "humidity"))]
+                #[cfg(any(feature = "humidity"))]
                 let distance =
-                    (331_300.0 + (0.606 * self.env_temp) + (0.0124 * self.env_hum as f32))
+                    (distance+ (0.0124 * self.env_hum as f32))
                         * time as f32
                         / 2_000_000.0;
 
