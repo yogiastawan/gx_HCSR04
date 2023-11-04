@@ -1,7 +1,7 @@
 //! # Introduction
-//! This is the library used to access the HC-SR04 sensor.
+//! This is the library used to access the HC-SR04 ultrasonic sensor.
 //! This library inspired by [`hc-sr04`](https://github.com/nordmoen/hc-sr04/tree/master).
-//!For more detail how to use this library see [`Example`](https://github.com/yogiastawan/gx_HCSR04/blob/v0.1.0/examples/use_rtic.rs)
+//! For more detail how to use this library see [`Example`](https://github.com/yogiastawan/gx_HCSR04/blob/v0.1.0/examples/use_rtic.rs)
 //!
 //! ## How to use?
 //! To use this library, there are several things that must be done, such as:
@@ -51,7 +51,7 @@ pub mod us_timer;
 use core::marker::PhantomData;
 
 use embedded_hal::{blocking, digital::v2};
-use num_traits::{float::FloatCore, NumCast};
+use num_traits::NumCast;
 
 const ULTRASONIC_SPEED_HALF: f32 = 171_605.0; //mm per second
 
@@ -90,6 +90,10 @@ pub struct HcSR04</*IN,*/ OUT, DELAY, COUNTER> {
     timer: *mut COUNTER,
     state: State<COUNTER>,
     last_length_time: u32,
+    #[cfg(feature = "temperature")]
+    env_temp: f32,
+    #[cfg(feature = "humidity")]
+    env_hum: u8,
 }
 
 ///Distance unit variants
@@ -126,7 +130,7 @@ where
     DELAY: blocking::delay::DelayUs<u8>,
     COUNTER: us_timer::TickerUs,
 {
-    ///Create new `Hc-SR04` object.
+    ///Create new `HC-SR04` object.
     pub fn hc_sr04_new(
         // pin_echo: IN,
         pin_trigger: OUT,
@@ -140,6 +144,10 @@ where
             timer,
             state: State::Idle,
             last_length_time: 0,
+            #[cfg(feature = "temperature")]
+            env_temp: 19.307,
+            #[cfg(feature = "humidity")]
+            env_hum: 50,
         }
     }
 
@@ -147,10 +155,24 @@ where
     //     &self.pin_echo
     // }
 
-    ///Measure distance. where T is `f32` or `f64`.
+    ///Set temperature of environment. Temperature value must be in `Celsius` unit.  
+    ///**This function only available if feature *`"temperature"`* or *`"humidity"`* enabled.**
+    #[cfg(feature = "temperature")]
+    pub fn set_temperature(&mut self, temp: f32) {
+        self.env_temp = temp;
+    }
+
+    ///Set relative humidity of environment.  
+    ///**This function only available if feature *`"humidity"`* enabled.**
+    #[cfg(feature = "humidity")]
+    pub fn set_humidity(&mut self, humidity: u8) {
+        self.env_hum = humidity;
+    }
+
+    ///Measure distance. where T is `numb variants`.
     pub fn get_distance<T>(&mut self, unit: DistanceUnit) -> Result<T, HsError>
     where
-        T: FloatCore,
+        T: NumCast,
     {
         match self.state {
             State::Idle => {
@@ -170,13 +192,22 @@ where
                     DistanceUnit::CentiMeter => 10,
                     DistanceUnit::Meter => 100,
                 };
+                #[cfg(not(any(feature = "temperature", feature = "humidity")))]
                 let distance = ULTRASONIC_SPEED_HALF * time as f32 / 1_000_000.0;
+                #[cfg(feature = "temperature")]
+                let distance = (331_300.0 + (0.606.0 * self.env_temp)) * time as f32 / 2_000_000.0;
+                #[cfg(any(feature = "temperature", feature = "humidity"))]
+                let distance =
+                    (331_300 + (0.606.0 * self.env_temp) + (0.0124 * self.env_hum as f32))
+                        * time as f32
+                        / 2_000_000.0;
+
                 Ok(NumCast::from(distance / (divider as f32)).unwrap())
             }
         }
     }
 
-    ///Get last lenght of time soundwave detected back by sensor. Where T is number variants.
+    ///Get last lenght of time soundwave detected back by sensor. Where T is `number variants`.
     pub fn get_last_length_echo_time<T>(&mut self, unit: TimeUnit) -> T
     where
         T: NumCast,
