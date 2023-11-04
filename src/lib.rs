@@ -3,9 +3,15 @@
 //! This library inspired by [`hc-sr04`](https://github.com/nordmoen/hc-sr04/tree/master).
 //! For more detail how to use this library see [`Example`](https://github.com/yogiastawan/gx_HCSR04/blob/v0.1.0/examples/use_rtic.rs)
 //!
+//! ## Features
+//! - [x] Measure distance.
+//! - [x] Get last duration ultrasonic wave returned
+//! - [x] Set environment temperature for compensation. Only available if feature *`temperature`* or *`humidity`* enabled.
+//! - [x] Set environment humidity for compensation. Only available if feature *`humidity`* enabled.
+//! 
 //! ## How to use?
 //! To use this library, there are several things that must be done, such as:
-//! - Implementing external interrupt (`EXTI`) with `RAISING` and `FAILING` trigger to the pin `echo` (pin microcontroller that connected to the pin `echo` HC-SR04 sensor).
+//! - Implementing external interrupt (*`EXTI`*) with *`RAISING`* and *`FAILING`* trigger to the pin *`echo`* (pin microcontroller that connected to the pin *`echo`* HC-SR04 sensor).
 //! ```rust
 //! let mut echo_pin = gpioa.pa3.into_pull_down_input(&mut gpioa.crl);
 //! echo_pin.make_interrupt_source(&mut afio);
