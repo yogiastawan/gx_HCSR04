@@ -1,5 +1,12 @@
 # Gihex HC-SR04
 
+[![Continuous integration](https://github.com/yogiastawan/gx_HCSR04/actions/workflows/rust.yml/badge.svg)](https://github.com/yogiastawan/gx_HCSR04)
+[![GitHub](https://img.shields.io/github/license/yogiastawan/gx_HCSR04)](https://github.com/yogiastawan/gx_HCSR04/blob/master/LICENSE)
+[![GitHub release (with filter)](https://img.shields.io/github/v/release/yogiastawan/gx_HCSR04)](https://github.com/yogiastawan/gx_HCSR04/releases)
+[![GitHub issues](https://img.shields.io/github/issues/yogiastawan/gx_HCSR04)](https://github.com/yogiastawan/gx_HCSR04/issues)
+
+
+
 ## Introduction
 This is the library used to access the HC-SR04 ultrasonic sensor. This library inspired by [`hc-sr04`](https://github.com/nordmoen/hc-sr04/tree/master).  
 For more detail how to use this library see [`Example`](https://github.com/yogiastawan/gx_HCSR04/blob/v0.1.0/examples/use_rtic.rs).
